@@ -73,6 +73,8 @@ SysStatus_t Sys_Context = {
   .focus = FOCUS_NONE 
 };
 extern FSMState_t Global_State = FSM_IDLE_LUX;//有限状态机状态
+extern uint8_t g_setting_hour;     // 当前设置的小时值(定义在menu.c)
+extern uint8_t g_setting_type;     // 设置类型: 0=打开时间, 1=关闭时间(定义在menu.c)
 
 Event_t evt = {.type = EVT_NONE, .param = 0};
 
@@ -436,7 +438,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    UI_Update();//刷新显示
+    UI_Update_WithBlink();//刷新显示(带闪烁控制)
     evt = Event_Dequeue();
     if(evt.type != EVT_NONE)
     {
