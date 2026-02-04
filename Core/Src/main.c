@@ -74,7 +74,6 @@ SysStatus_t Sys_Context = {
 };
 extern FSMState_t Global_State = FSM_IDLE_LUX;//有限状态机状态
 extern uint8_t g_setting_hour;     // 当前设置的小时值(定义在menu.c)
-extern uint8_t g_setting_type;     // 设置类型: 0=打开时间, 1=关闭时间(定义在menu.c)
 
 Event_t evt = {.type = EVT_NONE, .param = 0};
 
@@ -257,7 +256,7 @@ void Handle_Idle_Tim(Event_t *evt)
         case CMD_ENTER: // KEY4进入设置打开时间
           Global_State = FSM_SET_OPEN_TIME;
           g_setting_hour = Sys_Context.openHour;
-          g_setting_type = 0;
+          Sys_Context.focus = FOCUS_OPEN_TIME;
           break;
         default: break;
       }
@@ -364,7 +363,7 @@ void Handle_SetOpenTime(Event_t *evt)
           Sys_Context.openHour = g_setting_hour;
           Global_State = FSM_SET_CLOSE_TIME;
           g_setting_hour = Sys_Context.closeHour;
-          g_setting_type = 1;
+          Sys_Context.focus = FOCUS_CLOSE_TIME;
           break;
         default: break;
       }
@@ -396,7 +395,7 @@ void Handle_SetCloseTime(Event_t *evt)
         case CMD_ENTER:  // KEY4确认，返回空闲态
           Sys_Context.closeHour = g_setting_hour;
           Global_State = FSM_IDLE_TIM;
-          g_setting_type = 0;
+          Sys_Context.focus = FOCUS_NONE;
           break;
         default: break;
       }
