@@ -304,9 +304,39 @@ void Handle_Idle_Manual(Event_t *evt)
 
 void Handle_Opening(Event_t *evt)
 {
+  switch (evt->type)
+  {
+    case EVT_MOTOR_STATE:
+      if(evt->param == 1)
+      {
+        Sys_Context.curtainState = OPENED;
+        if(Sys_Context.mode == MODE_AUTO_LUX)
+          Global_State = FSM_IDLE_LUX;
+        else if(Sys_Context.mode == MODE_AUTO_TIM)
+          Global_State = FSM_IDLE_TIM;
+        else
+          Global_State = FSM_IDLE_MANUAL;
+      }
+    break;
+  }
 }
 void Handle_Closing(Event_t *evt)
 {
+  switch (evt->type)
+  {
+    case EVT_MOTOR_STATE:
+      if(evt->param == 0)
+      {
+        Sys_Context.curtainState = CLOSED;
+        if(Sys_Context.mode == MODE_AUTO_LUX)
+          Global_State = FSM_IDLE_LUX;
+        else if(Sys_Context.mode == MODE_AUTO_TIM)
+          Global_State = FSM_IDLE_TIM;
+        else
+          Global_State = FSM_IDLE_MANUAL;
+      }
+    break;
+  }
 }
 
 void Handle_SetOpenTime(Event_t *evt)
