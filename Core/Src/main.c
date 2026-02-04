@@ -104,14 +104,17 @@ void Mode_Change(void)
   if(Sys_Context.mode == MODE_AUTO_LUX)
   {
     Sys_Context.mode = MODE_AUTO_TIM;
+    Global_State = FSM_IDLE_TIM;
   }
   else if(Sys_Context.mode == MODE_AUTO_TIM)
   {
     Sys_Context.mode = MODE_MANUAL;
+    Global_State = FSM_IDLE_MANUAL;
   }
   else if(Sys_Context.mode == MODE_MANUAL)
   {
     Sys_Context.mode = MODE_AUTO_LUX;
+    Global_State = FSM_IDLE_LUX;
   }
 }
 void Curtain_Open(void)
