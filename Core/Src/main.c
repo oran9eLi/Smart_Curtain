@@ -68,13 +68,13 @@ SysStatus_t Sys_Context = {
   .curtainState = OPENED,
   .luxState = LUX_HIGH,
   .coState = CO_LOW,
-  .openTime = 0,
-  .closeTime = 0,
+  .openHour = 0,
+  .closeHour = 0,
   .focus = FOCUS_NONE 
 };
 extern FSMState_t Global_State = FSM_IDLE_LUX;//有限状态机状态
 
-Event_t evt = {evt.type = EVT_NONE, evt.param = 0};
+Event_t evt = {.type = EVT_NONE, .param = 0};
 
 // 计数器与标志位
 uint32_t key_scan_tick = 0;
@@ -91,6 +91,8 @@ void Handle_Idle_Tim(Event_t *evt);//处理空闲状态事件(时间模式)
 void Handle_Idle_Manual(Event_t *evt);//处理空闲状态事件(手动模式)
 void Handle_Opening(Event_t *evt);//处理打开状态事件
 void Handle_Closing(Event_t *evt);//处理关闭状态事件
+void Handle_SetOpenTime(Event_t *evt);//处理设置打开时间状态事件
+void Handle_SetCloseTime(Event_t *evt);//处理设置关闭时间状态事件
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -146,7 +148,7 @@ UserCMD_t Map_Key_To_Cmd(uint8_t key, uint8_t mode)
       case KEY_1: return CMD_MODE;
       case KEY_2: return CMD_INC;
       case KEY_3: return CMD_DEC;
-      case KEY_4: return Global_State == FSM_IDLE ? CMD_ENTER : CMD_PAUSE;
+      case KEY_4: return CMD_ENTER;
       default:    return CMD_NONE;
     }
   }
@@ -194,6 +196,8 @@ void System_Dispatch(Event_t *evt)
     case FSM_IDLE_MANUAL: Handle_Idle_Manual(evt); break;
     case FSM_OPENING:     Handle_Opening(evt);     break;
     case FSM_CLOSING:     Handle_Closing(evt);     break;
+    case FSM_SET_OPEN_TIME:  Handle_SetOpenTime(evt);  break;
+    case FSM_SET_CLOSE_TIME: Handle_SetCloseTime(evt); break;
     // case FSM_ERROR:   Handle_Error(evt);   break;
     //default:      Global_State = FSM_IDLE; break;
   }
@@ -245,9 +249,11 @@ void Handle_Idle_Tim(Event_t *evt)
       switch(cmd)
       {
         case CMD_MODE: Mode_Change(); break;
-        // case CMD_INC:  SoftTime_Inc();      break;
-        // case CMD_DEC:  SoftTime_Dec();      break;
-        // case CMD_ENTER:break;
+        case CMD_ENTER: // KEY4进入设置打开时间
+          Global_State = FSM_SET_OPEN_TIME;
+          g_setting_hour = Sys_Context.openHour;
+          g_setting_type = 0;
+          break;
         default: break;
       }
       break;
@@ -298,6 +304,71 @@ void Handle_Closing(Event_t *evt)
 {
 }
 
+void Handle_SetOpenTime(Event_t *evt)
+{
+  UserCMD_t cmd;
+  switch(evt->type)
+  {
+    case EVT_KEY_PRESS:
+      cmd = Map_Key_To_Cmd(evt->param, Sys_Context.mode);
+      switch(cmd)
+      {
+        case CMD_INC:  // KEY2增加小时
+          if(g_setting_hour < 23)
+            g_setting_hour++;
+          else
+            g_setting_hour = 0;
+          break;
+        case CMD_DEC:  // KEY3减少小时
+          if(g_setting_hour > 0)
+            g_setting_hour--;
+          else
+            g_setting_hour = 23;
+          break;
+        case CMD_ENTER:  // KEY4确认，进入设置关闭时间
+          Sys_Context.openHour = g_setting_hour;
+          Global_State = FSM_SET_CLOSE_TIME;
+          g_setting_hour = Sys_Context.closeHour;
+          g_setting_type = 1;
+          break;
+        default: break;
+      }
+      break;
+  }
+}
+
+void Handle_SetCloseTime(Event_t *evt)
+{
+  UserCMD_t cmd;
+  switch(evt->type)
+  {
+    case EVT_KEY_PRESS:
+      cmd = Map_Key_To_Cmd(evt->param, Sys_Context.mode);
+      switch(cmd)
+      {
+        case CMD_INC:  // KEY2增加小时
+          if(g_setting_hour < 23)
+            g_setting_hour++;
+          else
+            g_setting_hour = 0;
+          break;
+        case CMD_DEC:  // KEY3减少小时
+          if(g_setting_hour > 0)
+            g_setting_hour--;
+          else
+            g_setting_hour = 23;
+          break;
+        case CMD_ENTER:  // KEY4确认，返回空闲态
+          Sys_Context.closeHour = g_setting_hour;
+          Global_State = FSM_IDLE_TIM;
+          g_setting_type = 0;
+          break;
+        default: break;
+      }
+      break;
+  }
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -338,19 +409,21 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   
-   /*初始化*/
-   Event_Init();//初始化事件
-   LED_Init();
-   DHT11_Init();
-   OLED_Init();
-   Key_Init();
-   Beep_Init();
-   ADC_Init();
-   Light_Init();
-   MQ7_Init();
-   JR6001_Init();
-   SoftTime_Init(0, 0, 0);
-   SensorScan();
+  /*初始化*/
+  Event_Init();//初始化事件
+  LED_Init();
+  DHT11_Init();
+  OLED_Init();
+  Key_Init();
+  Beep_Init();
+  ADC_Init();
+  Light_Init();
+  MQ7_Init();
+  JR6001_Init();
+  SoftTime_Init(0, 0, 0);
+  Sys_Context.openHour = 8;    // 默认打开时间8点
+  Sys_Context.closeHour = 18;  // 默认关闭时间18点
+  SensorScan();
 
   /* 开启定时器2中断,频率1kHz */
   HAL_TIM_Base_Start_IT(&htim2);

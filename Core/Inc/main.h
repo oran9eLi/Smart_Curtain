@@ -59,8 +59,8 @@ typedef struct
   CurtainState_t curtainState;//窗帘状态
   LuxState_t luxState;//光照状态
   COState_t coState;//CO状态
-  uint32_t openTime;//打开时间
-  uint32_t closeTime;//关闭时间
+  uint8_t openHour;//打开时间(小时)
+  uint8_t closeHour;//关闭时间(小时)
   SettingFocus_t focus;//聚焦状态
 }SysStatus_t;//系统状态枚举类型
 
@@ -71,6 +71,8 @@ typedef enum
   FSM_IDLE_MANUAL,
   FSM_OPENING,
   FSM_CLOSING,
+  FSM_SET_OPEN_TIME,
+  FSM_SET_CLOSE_TIME,
   FSM_ERROR,
 }FSMState_t;//有限状态机状态枚举类型
 

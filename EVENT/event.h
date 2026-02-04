@@ -12,6 +12,7 @@ typedef enum {
 	EVT_SENSOR_CO,//CO传感器事件(参数：0/1阈值)
   EVT_MOTOR_STATE,//电机状态事件(参数：0/1关闭/开启)
   EVT_TIMER_CTRL,//定时器控制事件(参数：0/1关闭/开启)
+  EVT_SET_COMPLETE,//设置完成事件(参数：0/1打开时间/关闭时间)
 	EVT_ERROR//错误事件(参数：错误类型)
 } Event_Type;
 

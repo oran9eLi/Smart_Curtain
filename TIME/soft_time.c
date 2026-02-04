@@ -87,13 +87,13 @@ void SoftTime_CTRL(void)
 {
   if (Sys_Context.mode == MODE_AUTO_TIM)
   {
-    if (sys_time.hour == Sys_Context.closeTime)
+    if (sys_time.hour == Sys_Context.closeHour && sys_time.min == 0 && sys_time.sec == 0)
     {
-      Event_Queue(EVT_TIMER_CTRL, 0);// 入队事件
+      Event_Queue(EVT_TIMER_CTRL, 0);// 入队关闭事件
     }
-    else if (sys_time.hour == Sys_Context.openTime)
+    else if (sys_time.hour == Sys_Context.openHour && sys_time.min == 0 && sys_time.sec == 0)
     {
-      Event_Queue(EVT_TIMER_CTRL, 1);// 入队事件
+      Event_Queue(EVT_TIMER_CTRL, 1);// 入队打开事件
     }
   }
 }

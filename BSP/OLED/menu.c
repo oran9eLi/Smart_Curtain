@@ -4,6 +4,12 @@
 SoftTime_t time;
 SensorData_t sensor_data;
 
+// 闪烁控制变量
+uint8_t g_blink_state = 0;      // 闪烁状态: 0=显示, 1=隐藏
+uint8_t g_setting_hour = 0;     // 当前设置的小时值
+uint8_t g_setting_type = 0;     // 设置类型: 0=打开时间, 1=关闭时间
+static uint32_t blink_timer = 0; // 闪烁定时器
+
 /**
  * @brief  自动模式下的光敏开关页面显示
  * @retval 无
@@ -58,13 +64,13 @@ void OLED_autoPageTim(void)
   OLED_ShowChinese(32, 32, 58);
   OLED_ShowChinese(48, 32, 54);
 
-  OLED_ShowNum(0, 48, Sys_Context.openTime, 2, 16);
+  OLED_ShowNum(0, 48, Sys_Context.openHour, 2, 16);
   OLED_ShowString(16, 0, ":", 16);
-  OLED_ShowNum(24, 0, "00", 2, 16);
+  OLED_ShowString(24, 0, "00", 16);
   OLED_ShowChar(40, 0, '-', 16);
-  OLED_ShowNum(48, 0, Sys_Context.closeTime, 2, 16);
+  OLED_ShowNum(48, 0, Sys_Context.closeHour, 2, 16);
   OLED_ShowString(64, 0, ":", 16);
-  OLED_ShowNum(72, 0, "00", 2, 16);
+  OLED_ShowString(72, 0, "00", 16);
 
   OLED_Refresh();
 }
