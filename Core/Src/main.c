@@ -301,8 +301,20 @@ void Handle_Idle_Manual(Event_t *evt)
       switch (cmd)
       {
         case CMD_MODE:  Mode_Change();   break;
-        case CMD_OPEN:  Curtain_Open();  break;
-        case CMD_CLOSE: Curtain_Close(); break;
+        case CMD_OPEN:
+          if(Sys_Context.curtainState == CLOSED)
+          {
+            Sys_Context.curtainState = OPENING;
+            Curtain_Open();
+          }
+          break;
+        case CMD_CLOSE:
+          if(Sys_Context.curtainState == OPENED)
+          {
+            Sys_Context.curtainState = CLOSING;
+            Curtain_Close();
+          }
+          break;
         case CMD_SET_TIME: Enter_SystemTime_Setting(); break;
         default: break;
       }
@@ -565,7 +577,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    UI_Update_WithBlink();//刷新显示(带闪烁控制)
+    UI_Update();//刷新显示
     evt = Event_Dequeue();
     if(evt.type != EVT_NONE)
     {

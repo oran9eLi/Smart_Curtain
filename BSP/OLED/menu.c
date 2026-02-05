@@ -67,7 +67,44 @@ void OLED_autoPageTim(void)
 }
 
 /**
- * @brief  显示时间设置页面
+ * @brief  手动模式下的页面显示
+ * @retval 无
+ */
+void OLED_manualPage(void)
+{
+  //显示时间
+  OLED_ShowString(0, 0, "Time:", 16);
+  //显示温度
+  OLED_ShowChinese(0, 16, 0);
+  OLED_ShowChinese(16, 16, 2);
+  OLED_ShowChar(32, 16, ':', 16);
+  //显示湿度
+  OLED_ShowChinese(64, 16, 1);
+  OLED_ShowChinese(80, 16, 2);
+  OLED_ShowChar(96, 16, ':', 16);
+
+  //显示窗帘状态
+  OLED_ShowChinese(0, 32, 30);
+  OLED_ShowChinese(16, 32, 31);
+  OLED_ShowChinese(32, 32, 61);
+  OLED_ShowChinese(48, 32, 62);
+  OLED_ShowChar(64, 32, ':', 16);
+  //显示窗帘开关状态
+  if(Sys_Context.curtainState == OPENED || Sys_Context.curtainState == OPENING)
+  {
+    OLED_ShowChinese(96, 32, 40);
+    OLED_ShowChinese(112, 32, 41);
+  }
+  else
+  {
+    OLED_ShowChinese(96, 32, 42);
+    OLED_ShowChinese(112, 32, 43);
+  }
+  OLED_Refresh();
+}
+
+/**
+ * @brief  显示定时设置页面
  * @retval 无
  */
 void OLED_TimeSettingDisplay(void)
@@ -118,6 +155,10 @@ void OLED_TimeSettingDisplay(void)
   OLED_Refresh();
 }
 
+/**
+ * @brief  显示系统时间设置页面
+ * @retval 无
+ */
 void OLED_SystemTimeSettingDisplay(void)
 {
   extern TempTime_t g_temp_time;
@@ -178,7 +219,6 @@ void OLED_SensorDataDisplay1(void)
 
   OLED_Refresh();
 }
-
 void OLED_SensorDataDisplay2(void)
 {
   SoftTime_Get(&time);
@@ -195,34 +235,16 @@ void OLED_SensorDataDisplay2(void)
 
   OLED_ShowNum(40, 16, sensor_data.temp, 2, 16);
   OLED_ShowNum(104, 16, sensor_data.humi, 2, 16);
-  OLED_Refresh();
-}
-
-/**
- * @brief  手动模式下的页面显示
- * @retval 无
- */
-void OLED_manualPage(void)
-{
-  //显示时间
-  OLED_ShowString(0, 0, "Time:", 16);
-  //显示温度
-  OLED_ShowChinese(0, 16, 0);
-  OLED_ShowChinese(16, 16, 2);
-  OLED_ShowChar(32, 16, ':', 16);
-  //显示湿度
-  OLED_ShowChinese(64, 16, 1);
-  OLED_ShowChinese(80, 16, 2);
-  OLED_ShowChar(96, 16, ':', 16);
 
   OLED_Refresh();
 }
+
 
 /**
  * @brief  更新用户界面
  * @retval 无
  */
-void UI_Update_WithBlink(void)
+void UI_Update(void)
 {
   static uint32_t timer = 0;
   static uint8_t last_mode = 0xFF;

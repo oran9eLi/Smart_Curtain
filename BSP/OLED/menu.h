@@ -24,6 +24,6 @@ void OLED_SensorDataDisplay1(void);
 void OLED_SensorDataDisplay2(void);
 void OLED_TimeSettingDisplay(void);  // 设置时间显示(带闪烁)
 void OLED_SystemTimeSettingDisplay(void);  // 系统时间设置页面显示
-void UI_Update_WithBlink(void);  // 更新用户界面(包含闪烁控制)
+void UI_Update(void);  // 更新用户界面
 
 #endif
