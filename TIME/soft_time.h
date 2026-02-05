@@ -5,6 +5,8 @@
 #include "main.h"
 #include "event.h"
 
+#define SOFT_TIME_INTERVAL  500  // 时间间隔（毫秒）
+
 typedef struct
 {
   uint8_t hour;

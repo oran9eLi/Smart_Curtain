@@ -85,15 +85,23 @@ void SoftTime_Set(uint8_t hour, uint8_t min, uint8_t sec)
  */
 void SoftTime_CTRL(void)
 {
+  static uint8_t last_triggered_hour = 255;  // 标志位：记录上次触发的小时数
+  
   if (Sys_Context.mode == MODE_AUTO_TIM)
   {
-    if (sys_time.hour == Sys_Context.closeHour && sys_time.min == 0 && sys_time.sec == 0)
+    // 只在整点（分=0,秒=0）且该小时未触发过时才执行
+    if (sys_time.min == 0 && sys_time.sec == 0 && sys_time.hour != last_triggered_hour)
     {
-      Event_Queue(EVT_TIMER_CTRL, 0);// 入队关闭事件
-    }
-    else if (sys_time.hour == Sys_Context.openHour && sys_time.min == 0 && sys_time.sec == 0)
-    {
-      Event_Queue(EVT_TIMER_CTRL, 1);// 入队打开事件
+      last_triggered_hour = sys_time.hour;  // 更新标志位，标记该小时已触发
+      
+      if (sys_time.hour == Sys_Context.closeHour)
+      {
+        Event_Queue(EVT_TIMER_CTRL, 0);  // 关闭时间：入队关闭事件
+      }
+      else if (sys_time.hour == Sys_Context.openHour)
+      {
+        Event_Queue(EVT_TIMER_CTRL, 1);  // 打开时间：入队打开事件
+      }
     }
   }
 }

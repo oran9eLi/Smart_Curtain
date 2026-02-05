@@ -62,7 +62,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-//系统上下文
+//系统环境状态
 SysStatus_t Sys_Context = {
   .mode = MODE_AUTO_LUX,
   .curtainState = OPENED,
@@ -80,6 +80,7 @@ Event_t evt = {.type = EVT_NONE, .param = 0};
 // 计数器与标志位
 uint32_t key_scan_tick = 0;
 uint32_t led_tick = 0;
+uint32_t time_ctrl_tick = 0;
 uint32_t sensor_tick = 0;
 uint8_t sensorscan_flag = 0;
 /* USER CODE END PV */
@@ -94,6 +95,8 @@ void Handle_Opening(Event_t *evt);//处理打开状态事件
 void Handle_Closing(Event_t *evt);//处理关闭状态事件
 void Handle_SetOpenTime(Event_t *evt);//处理设置打开时间状态事件
 void Handle_SetCloseTime(Event_t *evt);//处理设置关闭时间状态事件
+void Handle_Error(Event_t *evt);//处理错误状态事件
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -120,13 +123,13 @@ void Curtain_Open(void)
 {
   Global_State = FSM_OPENING;
   Motor_Rotate_Angle(MOTOR_CW, 360);
-  //JR6001_Play(2);
+  JR6001_Play(2);
 }
 void Curtain_Close(void)
 {
   Global_State = FSM_CLOSING;
   Motor_Rotate_Angle(MOTOR_CCW, 360);
-  //JR6001_Play(3);
+  JR6001_Play(3);
 }
 
 /**
@@ -181,16 +184,16 @@ UserCMD_t Map_Key_To_Cmd(uint8_t key, uint8_t mode)
 void System_Dispatch(Event_t *evt)
 {
   //应急处理CO传感器事件
-  // if(evt->type == EVT_SENSOR_CO && evt->param == 1)
-  // {
-  //   Sys_Context.coState = CO_HIGH;
-  //   if(Sys_Context.curtainState != OPENED && Global_State != FSM_OPENING)
-  //   {
-  //     Beep_Start();
-  //     Curtain_Open();
-  //     return;
-  //   }
-  // }
+  if(evt->type == EVT_SENSOR_CO && evt->param == 1)
+  {
+    Sys_Context.coState = CO_HIGH;
+    if(Sys_Context.curtainState != OPENED && Global_State != FSM_OPENING)
+    {
+      Beep_Start();
+      Curtain_Open();
+      return;
+    }
+  }
 
   //常规事件分发
   switch (Global_State)
@@ -202,8 +205,8 @@ void System_Dispatch(Event_t *evt)
     case FSM_CLOSING:     Handle_Closing(evt);     break;
     case FSM_SET_OPEN_TIME:  Handle_SetOpenTime(evt);  break;
     case FSM_SET_CLOSE_TIME: Handle_SetCloseTime(evt); break;
-    // case FSM_ERROR:   Handle_Error(evt);   break;
-    //default:      Global_State = FSM_IDLE; break;
+    case FSM_ERROR:   Handle_Error(evt);   break;
+    default: break;
   }
 }
 
@@ -319,6 +322,7 @@ void Handle_Opening(Event_t *evt)
     break;
   }
 }
+
 void Handle_Closing(Event_t *evt)
 {
   switch (evt->type)
@@ -403,6 +407,19 @@ void Handle_SetCloseTime(Event_t *evt)
   }
 }
 
+void Handle_Error(Event_t *evt)
+{
+  switch (evt->type)
+  {
+    case EVT_KEY_PRESS:
+      if(Map_Key_To_Cmd(evt->param, Sys_Context.mode) == CMD_MODE)
+      {
+        Global_State = FSM_IDLE_TIM;
+        Sys_Context.focus = FOCUS_NONE;
+      }
+      break;
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -557,6 +574,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//定时器更新中�
     {
       led_tick = 0;
       LED_Toggle();
+    }
+
+    time_ctrl_tick++;
+    if (time_ctrl_tick >= SOFT_TIME_INTERVAL)
+    {
+      time_ctrl_tick = 0;
+      SoftTime_CTRL();
     }
 
     sensor_tick++;

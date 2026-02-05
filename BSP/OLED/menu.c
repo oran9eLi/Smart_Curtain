@@ -109,6 +109,10 @@ void OLED_TimeSettingDisplay(void)
     OLED_ShowChar(40, 48, '-', 16);
     OLED_ShowNum(48, 48, Sys_Context.closeHour, 2, 16);
     OLED_ShowString(64, 48, ":00", 16);
+    if(Sys_Context.openHour > Sys_Context.closeHour)
+    {
+      OLED_ShowString(100, 48, "+1", 16);
+    }
   }
 
   OLED_Refresh();
@@ -122,9 +126,9 @@ void OLED_SensorDataDisplay1(void)
 {
   SoftTime_Get(&time);
   char all_data[128] = {0};
-  sprintf(all_data, "时间:%02d:%02d:%02d 温度:%.1fC 湿度:%.1f%% 光照:%d",
+  sprintf(all_data, "时间:%02d:%02d:%02d 温度:%.1fC 湿度:%.1f%% 光照:%d CO:%d",
           time.hour, time.min, time.sec,  
-          sensor_data.temp, sensor_data.humi, sensor_data.lux);
+          sensor_data.temp, sensor_data.humi, sensor_data.lux, sensor_data.CO);
 
   OLED_ShowNum(40, 0, time.hour, 2, 16);
   OLED_ShowString(56, 0, ":", 16);
@@ -136,16 +140,9 @@ void OLED_SensorDataDisplay1(void)
   OLED_ShowNum(104, 16, sensor_data.humi, 2, 16);
   OLED_ShowNum(72, 32, sensor_data.lux, 2, 16);
   OLED_ShowChar(96, 32, '%', 16);
-  if(sensor_data.CO < 500)
-  {
-    OLED_ShowChinese(72, 48, 51);
-    OLED_ShowChinese(88, 48, 52);
-  }
-  else
-  {
-    OLED_ShowChinese(72, 48, 50);
-    OLED_ShowChinese(88, 48, 52);
-  }
+  OLED_ShowNum(72, 48, sensor_data.CO, 2, 16);
+  OLED_ShowChar(96, 48, '%', 16);
+
   OLED_Refresh();
 }
 
