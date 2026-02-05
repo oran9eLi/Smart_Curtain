@@ -15,8 +15,6 @@ static uint32_t blink_timer = 0; // 闪烁定时器
  */
 void OLED_autoPageLux(void)
 {
-  //显示时间
-  OLED_ShowString(0, 0, "Time:", 16);
   //显示温度
   OLED_ShowChinese(0, 16, 0);
   OLED_ShowChinese(16, 16, 2);
@@ -47,8 +45,6 @@ void OLED_autoPageLux(void)
  */
 void OLED_autoPageTim(void)
 {
-  //显示时间
-  OLED_ShowString(0, 0, "Time:", 16);
   //显示温度
   OLED_ShowChinese(0, 16, 0);
   OLED_ShowChinese(16, 16, 2);
@@ -72,8 +68,6 @@ void OLED_autoPageTim(void)
  */
 void OLED_manualPage(void)
 {
-  //显示时间
-  OLED_ShowString(0, 0, "Time:", 16);
   //显示温度
   OLED_ShowChinese(0, 16, 0);
   OLED_ShowChinese(16, 16, 2);
@@ -165,11 +159,12 @@ void OLED_SystemTimeSettingDisplay(void)
   
   SoftTime_Get(&time);
   
-  OLED_ShowNum(40, 0, g_temp_time.hour, 2, 16);
-  OLED_ShowString(56, 0, ":", 16);
-  OLED_ShowNum(64, 0, g_temp_time.min, 2, 16);
-  OLED_ShowString(80, 0, ":", 16);
-  OLED_ShowNum(88, 0, time.sec, 2, 16);
+  // 时间显示在第一行正中间 (居中显示)
+  OLED_ShowNum(32, 0, g_temp_time.hour, 2, 16);
+  OLED_ShowString(48, 0, ":", 16);
+  OLED_ShowNum(56, 0, g_temp_time.min, 2, 16);
+  OLED_ShowString(72, 0, ":", 16);
+  OLED_ShowNum(80, 0, time.sec, 2, 16);
   
   OLED_ShowNum(40, 16, sensor_data.temp, 2, 16);
   OLED_ShowNum(104, 16, sensor_data.humi, 2, 16);
@@ -178,14 +173,14 @@ void OLED_SystemTimeSettingDisplay(void)
   {
     if (g_blink_state)
     {
-      OLED_ShowString(40, 0, "  ", 16);
+      OLED_ShowString(32, 0, "  ", 16);
     }
   }
   else if (Sys_Context.focus == FOCUS_MIN)
   {
     if (g_blink_state)
     {
-      OLED_ShowString(64, 0, "  ", 16);
+      OLED_ShowString(56, 0, "  ", 16);
     }
   }
   
@@ -204,11 +199,11 @@ void OLED_SensorDataDisplay1(void)
           time.hour, time.min, time.sec,  
           sensor_data.temp, sensor_data.humi, sensor_data.lux, sensor_data.CO);
 
-  OLED_ShowNum(40, 0, time.hour, 2, 16);
-  OLED_ShowString(56, 0, ":", 16);
-  OLED_ShowNum(64, 0, time.min, 2, 16);
-  OLED_ShowString(80, 0, ":", 16);
-  OLED_ShowNum(88, 0, time.sec, 2, 16);
+  OLED_ShowNum(32, 0, time.hour, 2, 16);
+  OLED_ShowString(48, 0, ":", 16);
+  OLED_ShowNum(56, 0, time.min, 2, 16);
+  OLED_ShowString(72, 0, ":", 16);
+  OLED_ShowNum(80, 0, time.sec, 2, 16);
 
   OLED_ShowNum(40, 16, sensor_data.temp, 2, 16);
   OLED_ShowNum(104, 16, sensor_data.humi, 2, 16);
@@ -227,11 +222,11 @@ void OLED_SensorDataDisplay2(void)
           time.hour, time.min, time.sec,  
           sensor_data.temp, sensor_data.humi);
 
-  OLED_ShowNum(40, 0, time.hour, 2, 16);
-  OLED_ShowString(56, 0, ":", 16);
-  OLED_ShowNum(64, 0, time.min, 2, 16);
-  OLED_ShowString(80, 0, ":", 16);
-  OLED_ShowNum(88, 0, time.sec, 2, 16);
+  OLED_ShowNum(32, 0, time.hour, 2, 16);
+  OLED_ShowString(48, 0, ":", 16);
+  OLED_ShowNum(56, 0, time.min, 2, 16);
+  OLED_ShowString(72, 0, ":", 16);
+  OLED_ShowNum(80, 0, time.sec, 2, 16);
 
   OLED_ShowNum(40, 16, sensor_data.temp, 2, 16);
   OLED_ShowNum(104, 16, sensor_data.humi, 2, 16);
