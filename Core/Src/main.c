@@ -74,6 +74,8 @@ SysStatus_t Sys_Context = {
 };
 extern FSMState_t Global_State = FSM_IDLE_LUX;//有限状态机状态
 extern uint8_t g_setting_hour;     // 当前设置的小时值(定义在menu.c)
+TempTime_t g_temp_time = {0, 0, 0}; // 系统时间设置临时变量
+SoftTime_t current_time = {0, 0, 0}; // 当前系统时间
 
 Event_t evt = {.type = EVT_NONE, .param = 0};
 
@@ -95,7 +97,10 @@ void Handle_Opening(Event_t *evt);//处理打开状态事件
 void Handle_Closing(Event_t *evt);//处理关闭状态事件
 void Handle_SetOpenTime(Event_t *evt);//处理设置打开时间状态事件
 void Handle_SetCloseTime(Event_t *evt);//处理设置关闭时间状态事件
+void Handle_SetSystemTime(Event_t *evt);//处理设置系统时间状态事件
 void Handle_Error(Event_t *evt);//处理错误状态事件
+
+void Enter_SystemTime_Setting(void);//进入系统时间设置
 
 /* USER CODE END PFP */
 
@@ -166,7 +171,7 @@ UserCMD_t Map_Key_To_Cmd(uint8_t key, uint8_t mode)
       case KEY_1: return CMD_MODE;
       case KEY_2: return CMD_OPEN;
       case KEY_3: return CMD_CLOSE;
-      case KEY_4: return CMD_PAUSE;
+      case KEY_4: return CMD_SET_TIME;
       default:    return CMD_NONE;
     }
   }
@@ -205,6 +210,7 @@ void System_Dispatch(Event_t *evt)
     case FSM_CLOSING:     Handle_Closing(evt);     break;
     case FSM_SET_OPEN_TIME:  Handle_SetOpenTime(evt);  break;
     case FSM_SET_CLOSE_TIME: Handle_SetCloseTime(evt); break;
+    case FSM_SET_SYSTEM_TIME: Handle_SetSystemTime(evt); break;
     case FSM_ERROR:   Handle_Error(evt);   break;
     default: break;
   }
@@ -297,7 +303,7 @@ void Handle_Idle_Manual(Event_t *evt)
         case CMD_MODE:  Mode_Change();   break;
         case CMD_OPEN:  Curtain_Open();  break;
         case CMD_CLOSE: Curtain_Close(); break;
-        //case CMD_PAUSE: Curtain_Pause(); break;
+        case CMD_SET_TIME: Enter_SystemTime_Setting(); break;
         default: break;
       }
       break;
@@ -416,6 +422,78 @@ void Handle_Error(Event_t *evt)
       {
         Global_State = FSM_IDLE_TIM;
         Sys_Context.focus = FOCUS_NONE;
+      }
+      break;
+  }
+}
+
+void Enter_SystemTime_Setting(void)
+{
+  Global_State = FSM_SET_SYSTEM_TIME;
+  Sys_Context.focus = FOCUS_HOUR;
+}
+
+void Handle_SetSystemTime(Event_t *evt)
+{
+  UserCMD_t cmd;
+  
+  switch(evt->type)
+  {
+    case EVT_KEY_PRESS:
+      cmd = Map_Key_To_Cmd(evt->param, Sys_Context.mode);
+      switch(cmd)
+      {
+        case CMD_OPEN:
+          if(Sys_Context.focus == FOCUS_HOUR)
+          {
+            if(g_temp_time.hour < 23)
+              g_temp_time.hour++;
+            else
+              g_temp_time.hour = 0;
+          }
+          else if(Sys_Context.focus == FOCUS_MIN)
+          {
+            if(g_temp_time.min < 59)
+              g_temp_time.min++;
+            else
+              g_temp_time.min = 0;
+          }
+          break;
+          
+        case CMD_CLOSE:
+          if(Sys_Context.focus == FOCUS_HOUR)
+          {
+            if(g_temp_time.hour > 0)
+              g_temp_time.hour--;
+            else
+              g_temp_time.hour = 23;
+          }
+          else if(Sys_Context.focus == FOCUS_MIN)
+          {
+            if(g_temp_time.min > 0)
+              g_temp_time.min--;
+            else
+              g_temp_time.min = 59;
+          }
+          break;
+          
+        case CMD_SET_TIME:
+          if(Sys_Context.focus == FOCUS_HOUR)
+          {
+            Sys_Context.focus = FOCUS_MIN;
+          }
+          else if(Sys_Context.focus == FOCUS_MIN)
+          {
+            SoftTime_Set(g_temp_time.hour, g_temp_time.min, 0);
+            Global_State = FSM_IDLE_MANUAL;
+            Sys_Context.focus = FOCUS_NONE;
+            SoftTime_Get(&current_time);
+            g_temp_time.hour = current_time.hour;
+            g_temp_time.min = current_time.min;
+          }
+          break;
+          
+        default: break;
       }
       break;
   }

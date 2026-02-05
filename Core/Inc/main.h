@@ -51,7 +51,7 @@ typedef enum { MODE_AUTO_LUX, MODE_AUTO_TIM, MODE_MANUAL} SysMode_t;//系统模�
 typedef enum { CLOSED, OPENED, CLOSING, OPENING } CurtainState_t;//窗帘状态枚举类型
 typedef enum { LUX_LOW, LUX_HIGH } LuxState_t;//光照状态枚举类型
 typedef enum { CO_LOW, CO_HIGH } COState_t;//CO状态枚举类型
-typedef enum { FOCUS_NONE, FOCUS_OPEN_TIME, FOCUS_CLOSE_TIME } SettingFocus_t;//聚焦枚举类型
+typedef enum { FOCUS_NONE, FOCUS_OPEN_TIME, FOCUS_CLOSE_TIME, FOCUS_HOUR, FOCUS_MIN } SettingFocus_t;//聚焦枚举类型
 
 typedef struct
 {
@@ -64,6 +64,16 @@ typedef struct
   SettingFocus_t focus;//聚焦状态
 }SysStatus_t;//系统状态枚举类型
 
+// 系统时间设置临时变量（用于手动模式设置系统时间）
+typedef struct
+{
+  uint8_t hour;
+  uint8_t min;
+  uint8_t sec;
+} TempTime_t;
+
+extern TempTime_t g_temp_time;
+
 typedef enum
 {
   FSM_IDLE_LUX,
@@ -73,6 +83,7 @@ typedef enum
   FSM_CLOSING,
   FSM_SET_OPEN_TIME,
   FSM_SET_CLOSE_TIME,
+  FSM_SET_SYSTEM_TIME,//设置系统时间状态
   FSM_ERROR,
 }FSMState_t;//有限状态机状态枚举类型
 
@@ -86,6 +97,7 @@ typedef enum
   CMD_CLOSE,//手动关闭（手动模式，按键3）
   CMD_PAUSE,//暂停（自动模式，按键4）
   CMD_ENTER,//确认（定时模式，按键4）
+  CMD_SET_TIME,//设置系统时间（手动模式，按键4）
   //CMD_INCH,//寸动（手动模式，按键4）
 }UserCMD_t;//用户命令枚举类型
 

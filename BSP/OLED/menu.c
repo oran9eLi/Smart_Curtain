@@ -118,6 +118,39 @@ void OLED_TimeSettingDisplay(void)
   OLED_Refresh();
 }
 
+void OLED_SystemTimeSettingDisplay(void)
+{
+  extern TempTime_t g_temp_time;
+  
+  SoftTime_Get(&time);
+  
+  OLED_ShowNum(40, 0, g_temp_time.hour, 2, 16);
+  OLED_ShowString(56, 0, ":", 16);
+  OLED_ShowNum(64, 0, g_temp_time.min, 2, 16);
+  OLED_ShowString(80, 0, ":", 16);
+  OLED_ShowNum(88, 0, time.sec, 2, 16);
+  
+  OLED_ShowNum(40, 16, sensor_data.temp, 2, 16);
+  OLED_ShowNum(104, 16, sensor_data.humi, 2, 16);
+  
+  if (Sys_Context.focus == FOCUS_HOUR)
+  {
+    if (g_blink_state)
+    {
+      OLED_ShowString(40, 0, "  ", 16);
+    }
+  }
+  else if (Sys_Context.focus == FOCUS_MIN)
+  {
+    if (g_blink_state)
+    {
+      OLED_ShowString(64, 0, "  ", 16);
+    }
+  }
+  
+  OLED_Refresh();
+}
+
 /**
  * @brief  显示传感器数据
  * @retval 无
@@ -233,20 +266,27 @@ void UI_Update_WithBlink(void)
     timer = HAL_GetTick();
     
     // 首先刷新传感器数据(温度、湿度等)
-    switch (Sys_Context.mode)
+    if (Global_State == FSM_SET_SYSTEM_TIME)
     {
-      case MODE_AUTO_LUX:
-        OLED_SensorDataDisplay1();
-        break;
-      case MODE_AUTO_TIM:
-        OLED_SensorDataDisplay2();
-        OLED_TimeSettingDisplay();
-        break;
-      case MODE_MANUAL:
-        OLED_SensorDataDisplay2();
-        break;
-      default:
-        break;
+      OLED_SystemTimeSettingDisplay();
+    }
+    else
+    {
+      switch (Sys_Context.mode)
+      {
+        case MODE_AUTO_LUX:
+          OLED_SensorDataDisplay1();
+          break;
+        case MODE_AUTO_TIM:
+          OLED_SensorDataDisplay2();
+          OLED_TimeSettingDisplay();
+          break;
+        case MODE_MANUAL:
+          OLED_SensorDataDisplay2();
+          break;
+        default:
+          break;
+      }
     }
   }
 }
