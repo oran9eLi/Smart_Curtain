@@ -84,7 +84,9 @@ uint32_t key_scan_tick = 0;
 uint32_t led_tick = 0;
 uint32_t time_ctrl_tick = 0;
 uint32_t sensor_tick = 0;
+uint32_t bt_tick = 0;
 uint8_t sensorscan_flag = 0;
+uint8_t btprocess_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -99,8 +101,6 @@ void Handle_SetOpenTime(Event_t *evt);//处理设置打开时间状态事件
 void Handle_SetCloseTime(Event_t *evt);//处理设置关闭时间状态事件
 void Handle_SetSystemTime(Event_t *evt);//处理设置系统时间状态事件
 void Handle_Error(Event_t *evt);//处理错误状态事件
-
-void Enter_SystemTime_Setting(void);//进入系统时间设置
 
 /* USER CODE END PFP */
 
@@ -126,17 +126,23 @@ void Mode_Change(void)
 }
 void Curtain_Open(void)
 {
-  Global_State = FSM_OPENING;
-  Motor_Rotate_Angle(MOTOR_CW, 360);
-  JR6001_Play(2);
+    Global_State = FSM_OPENING;
+    Sys_Context.curtainState = OPENING;
+    Motor_Rotate_Angle(MOTOR_CW, 360);
+    JR6001_Play(2);
 }
 void Curtain_Close(void)
 {
-  Global_State = FSM_CLOSING;
-  Motor_Rotate_Angle(MOTOR_CCW, 360);
-  JR6001_Play(3);
+    Global_State = FSM_CLOSING;
+    Sys_Context.curtainState = CLOSING;
+    Motor_Rotate_Angle(MOTOR_CCW, 360);
+    JR6001_Play(3);
 }
-
+void Enter_SystemTime_Setting(void)
+{
+  Global_State = FSM_SET_SYSTEM_TIME;
+  Sys_Context.focus = FOCUS_HOUR;
+}
 /**
  * @brief  按键映射表
  * @param  key 按键代码
@@ -198,6 +204,17 @@ void System_Dispatch(Event_t *evt)
       Curtain_Open();
       return;
     }
+  }
+  // 处理蓝牙事件
+  if(evt->type == EVT_BT_CMD)
+  {
+    BT_CmdPacket_t packet;
+    packet.cmd = (BT_Command_t)(evt->param & 0xFF);
+    packet.param[0]  = (evt->param >> 8)  & 0xFF;                  // Bits 8-15
+    packet.param[1]  = (evt->param >> 16) & 0xFF;                  // Bits 16-23
+    packet.param[2]  = (evt->param >> 24) & 0xFF;                  // Bits 24-31
+    BT_ExecuteCommand(&packet);
+    return;
   }
 
   //常规事件分发
@@ -439,12 +456,6 @@ void Handle_Error(Event_t *evt)
   }
 }
 
-void Enter_SystemTime_Setting(void)
-{
-  Global_State = FSM_SET_SYSTEM_TIME;
-  Sys_Context.focus = FOCUS_HOUR;
-}
-
 void Handle_SetSystemTime(Event_t *evt)
 {
   UserCMD_t cmd;
@@ -560,6 +571,7 @@ int main(void)
   Light_Init();
   MQ7_Init();
   JR6001_Init();
+  BT_Init();
   SoftTime_Init(0, 0, 0);
   Sys_Context.openHour = 8;    // 默认打开时间8点
   Sys_Context.closeHour = 18;  // 默认关闭时间18点
@@ -586,6 +598,11 @@ int main(void)
     {
       sensorscan_flag = 0;
       SensorScan();//扫描传感器数据
+    }
+    if (btprocess_flag)
+    {
+      btprocess_flag = 0;
+      BT_Process();//处理蓝牙数据
     }
     /* USER CODE END WHILE */
 
@@ -679,6 +696,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//定时器更新中�
       sensor_tick = 0;
       sensorscan_flag = 1;
     }
+
+    bt_tick++;
+    if (bt_tick >= BT_PROCESS_INTERVAL)
+    {
+      bt_tick = 0;
+      btprocess_flag = 1;
+    }
+
     MotorStep_Process();
     Beep_Process();
   }

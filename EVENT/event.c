@@ -44,6 +44,8 @@ void Event_Queue(Event_Type type, uint32_t param)//入队事件
 Event_t Event_Dequeue(void)//出队事件
 {
   Event_t evt;//定义事件变量
+  evt.type = EVT_NONE;//将事件类型设为无事件
+  evt.param = 0;//将事件参数设为0
   if(count > 0)//队列不为空
   {
     evt.type = eventQueue[head].type;//将队头事件类型出队
