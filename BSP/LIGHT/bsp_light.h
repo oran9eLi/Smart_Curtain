@@ -6,9 +6,11 @@ extern "C" {
 #endif
 
 #include "main.h"
-#include "bsp_adc.h"
+#include "adc.h"
 
-#define LIGHT_ADC_CHANNEL  0
+#define LIGHT_ADC_CHANNEL   0
+#define ADC_CHANNEL_COUNT   1
+#define ADC_VALUE_MAX       4095
 
 #ifndef LIGHT_INVERT
 #define LIGHT_INVERT 0
@@ -28,4 +30,4 @@ Light_State_t Light_Get_State(void);
 }
 #endif
 
-#endif /* __BSP_LIGHT_H__ */
+#endif

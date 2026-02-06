@@ -37,10 +37,10 @@
 #include "bsp_led.h"
 #include "bsp_beep.h"
 #include "bsp_jr6001.h"
-#include "bsp_adc.h"
 #include "sensor.h"
 #include "soft_time.h"
 #include "event.h"
+#include "bsp_bt.h"
 
 /* USER CODE END Includes */
 
@@ -192,9 +192,9 @@ void System_Dispatch(Event_t *evt)
   if(evt->type == EVT_SENSOR_CO && evt->param == 1)
   {
     Sys_Context.coState = CO_HIGH;
+    Beep_Start();
     if(Sys_Context.curtainState != OPENED && Global_State != FSM_OPENING)
     {
-      Beep_Start();
       Curtain_Open();
       return;
     }
@@ -557,7 +557,6 @@ int main(void)
   OLED_Init();
   Key_Init();
   Beep_Init();
-  ADC_Init();
   Light_Init();
   MQ7_Init();
   JR6001_Init();
@@ -589,6 +588,7 @@ int main(void)
       SensorScan();//扫描传感器数据
     }
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

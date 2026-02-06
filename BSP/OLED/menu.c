@@ -195,9 +195,9 @@ void OLED_SensorDataDisplay1(void)
 {
   SoftTime_Get(&time);
   char all_data[128] = {0};
-  sprintf(all_data, "时间:%02d:%02d:%02d 温度:%.1fC 湿度:%.1f%% 光照:%d CO:%d",
+  sprintf(all_data, "时间:%02d:%02d:%02d 温度:%.1fC 湿度:%.1f%% 光照:%d",
           time.hour, time.min, time.sec,  
-          sensor_data.temp, sensor_data.humi, sensor_data.lux, sensor_data.CO);
+          sensor_data.temp, sensor_data.humi, sensor_data.lux);
 
   OLED_ShowNum(32, 0, time.hour, 2, 16);
   OLED_ShowString(48, 0, ":", 16);
@@ -209,8 +209,16 @@ void OLED_SensorDataDisplay1(void)
   OLED_ShowNum(104, 16, sensor_data.humi, 2, 16);
   OLED_ShowNum(72, 32, sensor_data.lux, 2, 16);
   OLED_ShowChar(96, 32, '%', 16);
-  OLED_ShowNum(72, 48, sensor_data.CO, 2, 16);
-  OLED_ShowChar(96, 48, '%', 16);
+  if(sensor_data.CO == GPIO_PIN_SET)
+  {
+    OLED_ShowChinese(72, 48, 51);
+    OLED_ShowChinese(88, 48, 52);
+  }
+  else if(sensor_data.CO == GPIO_PIN_RESET)
+  {
+    OLED_ShowChinese(72, 48, 50);
+    OLED_ShowChinese(88, 48, 52);
+  }
 
   OLED_Refresh();
 }

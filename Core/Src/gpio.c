@@ -69,6 +69,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(BUZZER_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : MQ7_Pin */
+  GPIO_InitStruct.Pin = MQ7_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(MQ7_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : LED_Pin MOTOR_IN1_Pin MOTOR_IN2_Pin */
   GPIO_InitStruct.Pin = LED_Pin|MOTOR_IN1_Pin|MOTOR_IN2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;

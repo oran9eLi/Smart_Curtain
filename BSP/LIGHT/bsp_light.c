@@ -1,7 +1,11 @@
 #include "bsp_light.h"
 
+static uint16_t adc_buffer[ADC_CHANNEL_COUNT] = {0};
+
 void Light_Init(void)
 {
+    HAL_ADCEx_Calibration_Start(&hadc1);
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, ADC_CHANNEL_COUNT);
 }
 
 static uint16_t Light_MapPercent(uint16_t raw)
@@ -18,7 +22,7 @@ static uint16_t Light_MapPercent(uint16_t raw)
 
 uint8_t Light_Read_Percent(void)
 {
-    uint16_t raw_value = ADC_GetValue(LIGHT_ADC_CHANNEL);
+    uint16_t raw_value = adc_buffer[LIGHT_ADC_CHANNEL];
     return (uint8_t)Light_MapPercent(raw_value);
 }
 

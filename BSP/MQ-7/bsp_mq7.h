@@ -6,12 +6,10 @@ extern "C" {
 #endif
 
 #include "main.h"
-#include "bsp_adc.h"
 
-#define MQ7_ADC_CHANNEL  1
 
 void MQ7_Init(void);
-uint8_t MQ7_Read_Percent(void);
+uint8_t MQ7_Read_Status(void);
 
 #ifdef __cplusplus
 }

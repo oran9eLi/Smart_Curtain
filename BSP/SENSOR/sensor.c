@@ -12,7 +12,7 @@ void SensorScan(void)
   // 扫描光敏传感器
   sensor_data.lux = (uint16_t)Light_Read_Percent();
   // 扫描MQ-7 CO传感器
-  sensor_data.CO = (uint16_t)MQ7_Read_Percent();
+  sensor_data.CO = MQ7_Read_Status();
 
 
   //数据处理
@@ -25,11 +25,11 @@ void SensorScan(void)
     Event_Queue(EVT_SENSOR_LIGHT, 1);//入队事件
   }
   
-  if(sensor_data.CO > 30)
+  if(sensor_data.CO == GPIO_PIN_RESET)
   {
     Event_Queue(EVT_SENSOR_CO, 1);//入队事件
   }
-  else if(sensor_data.CO < 20)
+  else if(sensor_data.CO == GPIO_PIN_SET)
   {
     Event_Queue(EVT_SENSOR_CO, 0);//入队事件
   }

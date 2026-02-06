@@ -78,10 +78,6 @@ virtualFolder:
                   files:
                     - path: BSP/MQ-7/bsp_mq7.c
                   folders: []
-                - name: ADC
-                  files:
-                    - path: BSP/ADC/bsp_adc.c
-                  folders: []
             - name: TIME
               files:
                 - path: TIME/soft_time.c
@@ -149,8 +145,8 @@ targets:
         - TIME
         - BSP/LIGHT
         - EVENT
-        - BSP/ADC
         - BSP/MQ-7
+        - BSP/BT
       libList: []
     excludeList: []
     toolchain: AC5

@@ -115,8 +115,8 @@ void Error_Handler(void);
 #define BUZZER_GPIO_Port GPIOC
 #define Light_Pin GPIO_PIN_0
 #define Light_GPIO_Port GPIOA
-#define CO_Pin GPIO_PIN_1
-#define CO_GPIO_Port GPIOA
+#define MQ7_Pin GPIO_PIN_1
+#define MQ7_GPIO_Port GPIOA
 #define BT_Pin GPIO_PIN_2
 #define BT_GPIO_Port GPIOA
 #define BTA3_Pin GPIO_PIN_3

@@ -14,7 +14,7 @@ typedef struct
   float temp;
   float humi;
   uint16_t lux;
-  uint16_t CO;
+  uint8_t CO;
 } SensorData_t;
 
 extern SensorData_t sensor_data;
