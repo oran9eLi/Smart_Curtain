@@ -21,6 +21,7 @@
 #include "adc.h"
 #include "dma.h"
 #include "i2c.h"
+#include "iwdg.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -41,7 +42,6 @@
 #include "soft_time.h"
 #include "event.h"
 #include "bsp_bt.h"
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -321,14 +321,12 @@ void Handle_Idle_Manual(Event_t *evt)
         case CMD_OPEN:
           if(Sys_Context.curtainState == CLOSED)
           {
-            Sys_Context.curtainState = OPENING;
             Curtain_Open();
           }
           break;
         case CMD_CLOSE:
           if(Sys_Context.curtainState == OPENED)
           {
-            Sys_Context.curtainState = CLOSING;
             Curtain_Close();
           }
           break;
@@ -344,7 +342,7 @@ void Handle_Opening(Event_t *evt)
   switch (evt->type)
   {
     case EVT_MOTOR_STATE:
-      if(evt->param == 1)
+      if(evt->param == 0)
       {
         Sys_Context.curtainState = OPENED;
         if(Sys_Context.mode == MODE_AUTO_LUX)
@@ -559,6 +557,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_TIM2_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   
   /*初始化*/
@@ -580,8 +579,6 @@ int main(void)
   /* 开启定时器2中断,频率1kHz */
   HAL_TIM_Base_Start_IT(&htim2);
 
-  JR6001_Play(1);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -594,6 +591,9 @@ int main(void)
     {
       System_Dispatch(&evt);
     }
+
+    HAL_IWDG_Refresh(&hiwdg);
+
     if (sensorscan_flag)
     {
       sensorscan_flag = 0;
@@ -624,10 +624,11 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
