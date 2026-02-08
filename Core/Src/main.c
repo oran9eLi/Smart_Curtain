@@ -72,7 +72,7 @@ SysStatus_t Sys_Context = {
   .closeHour = 0,
   .focus = FOCUS_NONE 
 };
-extern FSMState_t Global_State = FSM_IDLE_LUX;//有限状态机状态
+FSMState_t Global_State = FSM_IDLE_LUX;//有限状态机状态
 extern uint8_t g_setting_hour;     // 当前设置的小时值(定义在menu.c)
 TempTime_t g_temp_time = {0, 0, 0}; // 系统时间设置临时变量
 SoftTime_t current_time = {0, 0, 0}; // 当前系统时间
@@ -220,15 +220,15 @@ void System_Dispatch(Event_t *evt)
   //常规事件分发
   switch (Global_State)
   {
-    case FSM_IDLE_LUX:    Handle_Idle_Lux(evt);    break;
-    case FSM_IDLE_TIM:    Handle_Idle_Tim(evt);    break;
-    case FSM_IDLE_MANUAL: Handle_Idle_Manual(evt); break;
-    case FSM_OPENING:     Handle_Opening(evt);     break;
-    case FSM_CLOSING:     Handle_Closing(evt);     break;
-    case FSM_SET_OPEN_TIME:  Handle_SetOpenTime(evt);  break;
-    case FSM_SET_CLOSE_TIME: Handle_SetCloseTime(evt); break;
-    case FSM_SET_SYSTEM_TIME: Handle_SetSystemTime(evt); break;
-    case FSM_ERROR:   Handle_Error(evt);   break;
+    case FSM_IDLE_LUX:        Handle_Idle_Lux(evt);     break;
+    case FSM_IDLE_TIM:        Handle_Idle_Tim(evt);     break;
+    case FSM_IDLE_MANUAL:     Handle_Idle_Manual(evt);  break;
+    case FSM_OPENING:         Handle_Opening(evt);      break;
+    case FSM_CLOSING:         Handle_Closing(evt);      break;
+    case FSM_SET_OPEN_TIME:   Handle_SetOpenTime(evt);  break;
+    case FSM_SET_CLOSE_TIME:  Handle_SetCloseTime(evt); break;
+    case FSM_SET_SYSTEM_TIME: Handle_SetSystemTime(evt);break;
+    case FSM_ERROR:           Handle_Error(evt);        break;
     default: break;
   }
 }
