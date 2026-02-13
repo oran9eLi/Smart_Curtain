@@ -55,6 +55,10 @@ void BT_Process(void)
       Event_Queue(EVT_BT_CMD, (uint32_t)packet.cmd | ((uint32_t)packet.param[0] << 8) | 
                   ((uint32_t)packet.param[1] << 16) | ((uint32_t)packet.param[2] << 24));
     }
+    else
+    {
+      BT_SendResponse("ERR:UNKNOWN");
+    }
     
     memset((void *)bt_rx_buffer, 0, BT_RX_BUFFER_SIZE);
     bt_rx_len = 0;
@@ -288,27 +292,4 @@ bool BT_IsValidCommand(uint8_t *data, uint8_t len)
     }
     
     return true;
-}
-
-/**
- * @brief  将十六进制字符转换为十进制数值
- * @param  high 高 nibble 字符
- * @param  low 低 nibble 字符
- * @retval 转换后的数值
- */
-uint8_t BT_HexToDec(uint8_t high, uint8_t low)
-{
-    uint8_t result = 0;
-    
-    if(high >= '0' && high <= '9')
-        result = (high - '0') << 4;
-    else if(high >= 'A' && high <= 'F')
-        result = (high - 'A' + 10) << 4;
-    
-    if(low >= '0' && low <= '9')
-        result |= (low - '0');
-    else if(low >= 'A' && low <= 'F')
-        result |= (low - 'A' + 10);
-    
-    return result;
 }

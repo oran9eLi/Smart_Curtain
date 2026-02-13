@@ -144,6 +144,10 @@ void OLED_TimeSettingDisplay(void)
     {
       OLED_ShowString(100, 48, "+1", 16);
     }
+    else
+    {
+      OLED_ShowString(100, 48, "  ", 16);
+    }
   }
 
   OLED_Refresh();

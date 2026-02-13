@@ -1,0 +1,145 @@
+%% 智能窗帘控制系统 - 流程图集
+
+%% 1. 系统总体流程图
+flowchart TB
+    subgraph 初始化
+        A[系统上电] --> B[HAL初始化]
+        B --> C[时钟配置 72MHz]
+        C --> D[外设初始化<br/>GPIO/DMA/ADC/I2C/UART/TIM/IWDG]
+        D --> E[模块初始化<br/>事件/LED/DHT11/OLED/Key/Beep/Light/MQ7/JR6001/BT/SoftTime]
+        E --> F[开启定时器2中断 1kHz]
+    end
+
+    F --> G[主循环 while1]
+    
+    subgraph 主循环
+        G --> H[UI_Update 刷新OLED显示]
+        H --> I[Event_Dequeue 获取事件]
+        I --> J{有事件?}
+        J -->|是| K[System_Dispatch 事件分发]
+        J -->|否| L[HAL_IWDG_Refresh 喂狗]
+        L --> M{传感器扫描标志?}
+        M -->|是| N[SensorScan 传感器扫描]
+        M -->|否| O{蓝牙处理标志?}
+        N --> O
+        O -->|是| P[BT_Process 处理蓝牙数据]
+        O -->|否| G
+        K --> L
+    end
+
+%% 2. 事件分发流程图
+flowchart TB
+    subgraph System_Dispatch事件分发
+        A[收到事件 evt] --> B{EVT_SENSOR_CO?}
+        B -->|是 CO超标| C[Beep_Start 蜂鸣器报警]
+        C --> D{当前非打开状态?}
+        D -->|是| E[Curtain_Open 自动开窗通风]
+        D -->|否| F[返回]
+        E --> F
+        
+        B -->|否| G{EVT_BT_CMD?}
+        G -->|是| H[BT_ExecuteCommand 执行蓝牙命令]
+        H --> I{命令有效?}
+        I -->|是| J[返回OK/ERR]
+        I -->|否| K[返回ERR:UNKNOWN]
+        J --> F
+        K --> F
+        
+        G -->|否| L{当前状态?}
+        L -->|FSM_IDLE_LUX| M[Handle_Idle_Lux]
+        L -->|FSM_IDLE_TIM| N[Handle_Idle_Tim]
+        L -->|FSM_IDLE_MANUAL| O[Handle_Idle_Manual]
+        L -->|FSM_OPENING| P[Handle_Opening]
+        L -->|FSM_CLOSING| Q[Handle_Closing]
+        L -->|FSM_SET_OPEN_TIME| R[Handle_SetOpenTime]
+        L -->|FSM_SET_CLOSE_TIME| S[Handle_SetCloseTime]
+        L -->|FSM_SET_SYSTEM_TIME| T[Handle_SetSystemTime]
+        L -->|FSM_ERROR| U[Handle_Error]
+    end
+
+%% 3. 状态机流程图
+stateDiagram-v2
+    [*] --> FSM_IDLE_LUX
+    
+    FSM_IDLE_LUX --> FSM_IDLE_TIM: KEY1 MODE键
+    FSM_IDLE_LUX --> FSM_OPENING: 光照变暗+窗帘关闭
+    FSM_IDLE_LUX --> FSM_CLOSING: 光照变亮+窗帘打开
+    
+    FSM_IDLE_TIM --> FSM_IDLE_MANUAL: KEY1 MODE键
+    FSM_IDLE_TIM --> FSM_SET_OPEN_TIME: KEY4 ENTER键
+    FSM_IDLE_TIM --> FSM_OPENING: 定时开窗时间到
+    FSM_IDLE_TIM --> FSM_CLOSING: 定时关窗时间到
+    
+    FSM_IDLE_MANUAL --> FSM_IDLE_LUX: KEY1 MODE键
+    FSM_IDLE_MANUAL --> FSM_OPENING: KEY2 开窗键
+    FSM_IDLE_MANUAL --> FSM_CLOSING: KEY3 关窗键
+    FSM_IDLE_MANUAL --> FSM_SET_SYSTEM_TIME: KEY4 设置时间
+    
+    FSM_OPENING --> FSM_IDLE_LUX: 电机停止-光照模式
+    FSM_OPENING --> FSM_IDLE_TIM: 电机停止-时间模式
+    FSM_OPENING --> FSM_IDLE_MANUAL: 电机停止-手动模式
+    
+    FSM_CLOSING --> FSM_IDLE_LUX: 电机停止-光照模式
+    FSM_CLOSING --> FSM_IDLE_TIM: 电机停止-时间模式
+    FSM_CLOSING --> FSM_IDLE_MANUAL: 电机停止-手动模式
+    
+    FSM_SET_OPEN_TIME --> FSM_SET_CLOSE_TIME: KEY4 确认
+    FSM_SET_CLOSE_TIME --> FSM_IDLE_TIM: KEY4 确认
+    FSM_SET_SYSTEM_TIME --> FSM_IDLE_MANUAL: KEY4 确认
+    
+    FSM_ERROR --> FSM_IDLE_TIM: KEY1 MODE键
+    
+    FSM_IDLE_LUX --> [*]
+    FSM_IDLE_TIM --> [*]
+    FSM_IDLE_MANUAL --> [*]
+
+%% 4. 定时器中断处理流程
+flowchart TB
+    A[定时器2中断 1ms] --> B[SoftTime_Tick_1ms 软定时器]
+    B --> C[key_scan_tick++]
+    C --> D{key_scan_tick >= 10ms?}
+    D -->|是| E[Key_Scan 按键扫描]
+    D -->|否| F[led_tick++]
+    E --> F
+    F --> G{led_tick >= 500ms?}
+    G -->|是| H[LED_Toggle LED翻转]
+    G -->|否| I[time_ctrl_tick++]
+    H --> I
+    I --> J{time_ctrl_tick >= 1000ms?}
+    J -->|是| K[SoftTime_CTRL 时间控制]
+    J -->|否| L[sensor_tick++]
+    K --> L
+    L --> M{sensor_tick >= 2000ms?}
+    M -->|是| N[sensorscan_flag=1 标记扫描]
+    M -->|否| O[bt_tick++]
+    N --> O
+    O --> P{bt_tick >= 50ms?}
+    P -->|是| Q[btprocess_flag=1 标记处理]
+    P -->|否| R[MotorStep_Process 电机步进]
+    Q --> R
+    R --> S[Beep_Process 蜂鸣器处理]
+    S --> T[中断返回]
+
+%% 5. 三种工作模式对比
+flowchart LR
+    subgraph MODE_AUTO_LUX[光照自动模式]
+        L1[光敏传感器] --> L2[光照阈值判断]
+        L2 --> L3{光照变化?}
+        L3 -->|变暗| L4[自动关窗]
+        L3 -->|变亮| L5[自动开窗]
+    end
+    
+    subgraph MODE_AUTO_TIM[时间定时模式]
+        T1[SoftTime] --> T2[当前时间比对]
+        T2 --> T3{定时点到达?}
+        T3 -->|开窗时间| T4[自动开窗]
+        T3 -->|关窗时间| T5[自动关窗]
+    end
+    
+    subgraph MODE_MANUAL[手动模式]
+        M1[按键输入] --> M2[按键扫描]
+        M2 --> M3{按键值?}
+        M3 -->|KEY2| M4[开窗]
+        M3 -->|KEY3| M5[关窗]
+        M3 -->|KEY4| M6[设置时间]
+    end

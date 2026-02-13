@@ -64,7 +64,7 @@
 /* USER CODE BEGIN PV */
 //系统环境状态
 SysStatus_t Sys_Context = {
-  .mode = MODE_AUTO_LUX,
+  .mode = MODE_MANUAL,
   .curtainState = OPENED,
   .luxState = LUX_HIGH,
   .coState = CO_LOW,
@@ -72,7 +72,7 @@ SysStatus_t Sys_Context = {
   .closeHour = 0,
   .focus = FOCUS_NONE 
 };
-FSMState_t Global_State = FSM_IDLE_LUX;//有限状态机状态
+FSMState_t Global_State = FSM_IDLE_MANUAL;//有限状态机状态
 extern uint8_t g_setting_hour;     // 当前设置的小时值(定义在menu.c)
 TempTime_t g_temp_time = {0, 0, 0}; // 系统时间设置临时变量
 SoftTime_t current_time = {0, 0, 0}; // 当前系统时间
@@ -210,9 +210,9 @@ void System_Dispatch(Event_t *evt)
   {
     BT_CmdPacket_t packet;
     packet.cmd = (BT_Command_t)(evt->param & 0xFF);
-    packet.param[0]  = (evt->param >> 8)  & 0xFF;                  // Bits 8-15
-    packet.param[1]  = (evt->param >> 16) & 0xFF;                  // Bits 16-23
-    packet.param[2]  = (evt->param >> 24) & 0xFF;                  // Bits 24-31
+    packet.param[0]  = (evt->param >> 8)  & 0xFF;
+    packet.param[1]  = (evt->param >> 16) & 0xFF;
+    packet.param[2]  = (evt->param >> 24) & 0xFF;
     BT_ExecuteCommand(&packet);
     return;
   }
@@ -440,20 +440,6 @@ void Handle_SetCloseTime(Event_t *evt)
   }
 }
 
-void Handle_Error(Event_t *evt)
-{
-  switch (evt->type)
-  {
-    case EVT_KEY_PRESS:
-      if(Map_Key_To_Cmd(evt->param, Sys_Context.mode) == CMD_MODE)
-      {
-        Global_State = FSM_IDLE_TIM;
-        Sys_Context.focus = FOCUS_NONE;
-      }
-      break;
-  }
-}
-
 void Handle_SetSystemTime(Event_t *evt)
 {
   UserCMD_t cmd;
@@ -515,6 +501,20 @@ void Handle_SetSystemTime(Event_t *evt)
           break;
           
         default: break;
+      }
+      break;
+  }
+}
+
+void Handle_Error(Event_t *evt)
+{
+  switch (evt->type)
+  {
+    case EVT_KEY_PRESS:
+      if(Map_Key_To_Cmd(evt->param, Sys_Context.mode) == CMD_MODE)
+      {
+        Global_State = FSM_IDLE_TIM;
+        Sys_Context.focus = FOCUS_NONE;
       }
       break;
   }

@@ -20,9 +20,9 @@ typedef enum {
 
 // 按键状态枚举
 typedef enum {
-  KEY_STATE_IDLE,
-  KEY_STATE_DEBOUNCE,
-  KEY_STATE_PRESSED,
+  KEY_STATE_IDLE,//按键空闲状态
+  KEY_STATE_DEBOUNCE,//按键消抖状态
+  KEY_STATE_PRESSED,//按键按下状态
 } Key_State_t;
 
 // 按键结构体
