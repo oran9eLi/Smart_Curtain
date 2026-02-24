@@ -268,28 +268,31 @@ void BT_ExecuteCommand(BT_CmdPacket_t *packet)
   }
 }
 
+/**
+ * @brief  发送蓝牙响应
+ * @param  response 包含响应信息的字符串
+ */
 void BT_SendResponse(const char *response)
 {
-    if(response == NULL) return;
-    HAL_UART_Transmit(&huart2, (uint8_t *)response, strlen(response), 100);
-    HAL_UART_Transmit(&huart2, (uint8_t *)"\r\n", 2, 100);
+  if(response == NULL) return;
+  HAL_UART_Transmit(&huart2, (uint8_t *)response, strlen(response), 100);
+  HAL_UART_Transmit(&huart2, (uint8_t *)"\r\n", 2, 100);
 }
 
 /**
- * @brief  验证蓝牙命令是否有效
+ * @brief  验证蓝牙命令是否有效同时转换为大写
  * @param  data 包含命令的字节数组
  * @param  len 数据长度
  * @retval 是否有效
  */
 bool BT_IsValidCommand(uint8_t *data, uint8_t len)
 {
-    if(len < 2) return false;
-    
-    for(uint8_t i = 0; i < len; i++)
-    {
-        if(data[i] >= 'a' && data[i] <= 'z')
-            data[i] = data[i] - 'a' + 'A';
-    }
-    
-    return true;
+  if(len < 2) return false;
+  
+  for(uint8_t i = 0; i < len; i++)
+  {
+    if(data[i] >= 'a' && data[i] <= 'z')
+      data[i] = data[i] - 'a' + 'A';
+  }
+  return true;
 }

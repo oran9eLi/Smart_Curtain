@@ -69,7 +69,6 @@ typedef struct
 {
   uint8_t hour;
   uint8_t min;
-  uint8_t sec;
 } TempTime_t;
 
 extern TempTime_t g_temp_time;

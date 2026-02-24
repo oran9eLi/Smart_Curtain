@@ -74,7 +74,7 @@ SysStatus_t Sys_Context = {
 };
 FSMState_t Global_State = FSM_IDLE_MANUAL;//有限状态机状态
 extern uint8_t g_setting_hour;     // 当前设置的小时值(定义在menu.c)
-TempTime_t g_temp_time = {0, 0, 0}; // 系统时间设置临时变量
+TempTime_t g_temp_time = {0, 0}; // 系统时间设置临时变量
 SoftTime_t current_time = {0, 0, 0}; // 当前系统时间
 
 Event_t evt = {.type = EVT_NONE, .param = 0};
@@ -86,7 +86,6 @@ uint32_t time_ctrl_tick = 0;
 uint32_t sensor_tick = 0;
 uint32_t bt_tick = 0;
 uint8_t sensorscan_flag = 0;
-uint8_t btprocess_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -137,6 +136,18 @@ void Curtain_Close(void)
     Sys_Context.curtainState = CLOSING;
     Motor_Rotate_Angle(MOTOR_CCW, 360);
     JR6001_Play(3);
+}
+void Enter_OpenTime_Setting(void)
+{
+  Global_State = FSM_SET_OPEN_TIME;
+  g_setting_hour = Sys_Context.openHour;
+  Sys_Context.focus = FOCUS_OPEN_TIME;
+}
+void Enter_CloseTime_Setting(void)
+{
+  Global_State = FSM_SET_CLOSE_TIME;
+  g_setting_hour = Sys_Context.closeHour;
+  Sys_Context.focus = FOCUS_CLOSE_TIME;
 }
 void Enter_SystemTime_Setting(void)
 {
@@ -252,7 +263,6 @@ void Handle_Idle_Lux(Event_t *evt)
         Sys_Context.luxState = LUX_HIGH;
         if(Sys_Context.curtainState == CLOSED)
         {
-          Sys_Context.curtainState = OPENING;
           Curtain_Open();
         }
       }
@@ -261,7 +271,6 @@ void Handle_Idle_Lux(Event_t *evt)
         Sys_Context.luxState = LUX_LOW;
         if(Sys_Context.curtainState == OPENED)
         {
-          Sys_Context.curtainState = CLOSING;
           Curtain_Close();
         }
       }
@@ -280,9 +289,7 @@ void Handle_Idle_Tim(Event_t *evt)
       {
         case CMD_MODE: Mode_Change(); break;
         case CMD_ENTER: // KEY4进入设置打开时间
-          Global_State = FSM_SET_OPEN_TIME;
-          g_setting_hour = Sys_Context.openHour;
-          Sys_Context.focus = FOCUS_OPEN_TIME;
+          Enter_OpenTime_Setting();
           break;
         default: break;
       }
@@ -292,7 +299,6 @@ void Handle_Idle_Tim(Event_t *evt)
       {
         if(Sys_Context.curtainState == CLOSED)
         {
-          Sys_Context.curtainState = OPENING;
           Curtain_Open();
         }
       }
@@ -300,7 +306,6 @@ void Handle_Idle_Tim(Event_t *evt)
       {
         if(Sys_Context.curtainState == OPENED)
         {
-          Sys_Context.curtainState = CLOSING;
           Curtain_Close();
         }
       }
@@ -330,8 +335,14 @@ void Handle_Idle_Manual(Event_t *evt)
             Curtain_Close();
           }
           break;
-        case CMD_SET_TIME: Enter_SystemTime_Setting(); break;
-        default: break;
+        case CMD_SET_TIME: 
+          SoftTime_Get(&current_time);
+          g_temp_time.hour = current_time.hour;
+          g_temp_time.min = current_time.min;
+          Enter_SystemTime_Setting(); 
+          break;
+        default: 
+          break;
       }
       break;
   }
@@ -398,9 +409,7 @@ void Handle_SetOpenTime(Event_t *evt)
           break;
         case CMD_ENTER:  // KEY4确认，进入设置关闭时间
           Sys_Context.openHour = g_setting_hour;
-          Global_State = FSM_SET_CLOSE_TIME;
-          g_setting_hour = Sys_Context.closeHour;
-          Sys_Context.focus = FOCUS_CLOSE_TIME;
+          Enter_CloseTime_Setting();
           break;
         default: break;
       }
@@ -494,9 +503,6 @@ void Handle_SetSystemTime(Event_t *evt)
             SoftTime_Set(g_temp_time.hour, g_temp_time.min, 0);
             Global_State = FSM_IDLE_MANUAL;
             Sys_Context.focus = FOCUS_NONE;
-            SoftTime_Get(&current_time);
-            g_temp_time.hour = current_time.hour;
-            g_temp_time.min = current_time.min;
           }
           break;
           
@@ -586,24 +592,23 @@ int main(void)
   while (1)
   {
     UI_Update();//刷新显示
+
     evt = Event_Dequeue();
     if(evt.type != EVT_NONE)
     {
       System_Dispatch(&evt);
     }
 
-    HAL_IWDG_Refresh(&hiwdg);
-
     if (sensorscan_flag)
     {
       sensorscan_flag = 0;
       SensorScan();//扫描传感器数据
     }
-    if (btprocess_flag)
-    {
-      btprocess_flag = 0;
-      BT_Process();//处理蓝牙数据
-    }
+    
+    BT_Process();//处理蓝牙数据
+
+    HAL_IWDG_Refresh(&hiwdg);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -696,13 +701,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//定时器更新中�
     {
       sensor_tick = 0;
       sensorscan_flag = 1;
-    }
-
-    bt_tick++;
-    if (bt_tick >= BT_PROCESS_INTERVAL)
-    {
-      bt_tick = 0;
-      btprocess_flag = 1;
     }
 
     MotorStep_Process();

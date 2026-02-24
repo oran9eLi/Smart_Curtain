@@ -9,7 +9,6 @@
 
 /* 蓝牙接收缓冲区大小 */
 #define BT_RX_BUFFER_SIZE 64
-#define BT_PROCESS_INTERVAL 50 // 蓝牙处理间隔，单位：毫秒
 
 /* 蓝牙命令定义 */
 typedef enum {
@@ -51,6 +50,5 @@ void BT_IDLE_Handler(void);
 
 /* 协议解析辅助函数 */
 bool BT_IsValidCommand(uint8_t *data, uint8_t len);
-uint8_t BT_HexToDec(uint8_t high, uint8_t low);
 
 #endif /* __BSP_BT_H */
