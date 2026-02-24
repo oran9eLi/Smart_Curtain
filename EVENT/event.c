@@ -53,9 +53,5 @@ Event_t Event_Dequeue(void)//出队事件
     head = (head + 1) % EVENT_QUEUE_SIZE;//更新队头指针
     count--;//队列中事件数量减1
   }
-  else//队列为空
-  {
-    Event_Init();//初始化事件
-  }
   return evt;//返回出队事件
 }
