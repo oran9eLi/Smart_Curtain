@@ -22,7 +22,8 @@ void Event_Init(void)//初始化事件
 
 /**
  * @brief 入队事件
- * @param evt 指向事件结构体的指针
+ * @param type 事件类型
+ * @param param 事件参数
  * @retval None
  */
 void Event_Queue(Event_Type type, uint32_t param)//入队事件
